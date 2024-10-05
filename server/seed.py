@@ -1,25 +1,72 @@
 #!/usr/bin/env python3
 
-from random import choice as rc
+from random import randint, choice as rc
+
+from faker import Faker
 
 from app import app
-from models import db, Bakery, BakedGood
+from models import db, Game, Review, User
+
+
+fake = Faker()
 
 with app.app_context():
 
-    BakedGood.query.delete()
-    Bakery.query.delete()
-    
-    bakeries = []
-    bakeries.append(Bakery(name='Delightful donuts'));
-    bakeries.append(Bakery(name='Incredible crullers'));
-    db.session.add_all(bakeries)
+    Review.query.delete()
+    User.query.delete()
+    Game.query.delete()
 
-    baked_goods = []
-    baked_goods.append(BakedGood(name='Chocolate dipped donut', price=2.75, bakery=bakeries[0]));
-    baked_goods.append(BakedGood(name='Apple-spice filled donut', price=3.50, bakery=bakeries[0]));
-    baked_goods.append(BakedGood(name='Glazed honey cruller', price=3.25, bakery=bakeries[1]));
-    baked_goods.append(BakedGood(name='Chocolate cruller', price=3.40, bakery=bakeries[1]));
+    users = []
+    for i in range(3):
+        u = User(name=fake.name())
+        users.append(u)
 
-    db.session.add_all(baked_goods)
+    db.session.add_all(users)
+
+    games = []
+    games.append(Game(
+        title='Mega Adventure',
+        genre='Survival',
+        platform='XBox',
+        price=30))
+    games.append(Game(
+        title='Golf Pro IV',
+        genre='Sports',
+        platform="PlayStation",
+        price=20))
+    games.append(Game(
+        title='Dance, dance, dance',
+        genre='Party',
+        platform="PlayStation",
+        price=7))
+    db.session.add_all(games)
+
+    reviews = []
+    reviews.append(Review(
+        score=9,
+        comment='Amazing action',
+        user=users[0],
+        game=games[0]))
+    reviews.append(Review(
+        score=2,
+        comment='Boring',
+        user=users[0],
+        game=games[1]))
+    reviews.append(Review(
+        score=5,
+        comment='Not enough levels',
+        user=users[1],
+        game=games[0]))
+    reviews.append(Review(
+        score=randint(0, 10),
+        comment='confusing instructions',
+        user=users[2],
+        game=games[2]))
+    db.session.add_all(reviews)
+
+    for g in games:
+        r = rc(reviews)
+        g.review = r
+        reviews.remove(r)
+
     db.session.commit()
